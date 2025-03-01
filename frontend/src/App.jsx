@@ -99,23 +99,59 @@ function App() {
           <a href="#" style={navLinkStyle}>
             Home
           </a>
-          <a href="#about" style={navLinkStyle}>
+          <a href=".../..About.jsx" style={navLinkStyle}>
             About
           </a>
           <a href="#founders" style={navLinkStyle}>
             Founders
           </a>
-          <button style={downloadButtonStyle}>Download</button>
+          <button style={downloadButtonStyle}>Download Extension</button>
         </div>
       </nav>
 
       {/* Space to prevent content from being hidden under the fixed navbar */}
-      <div style={{ height: '80px' }}></div>
+      <div style={{ height: '90px' }}></div>
+        {/* Download & Description Section */}
+        <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '90%',
+        margin: '20px auto',
+        padding: '20px',
+        backgroundColor: '#f4f4f4',
+        borderRadius: '10px'
+      }}>
+        {/* Download Button */}
+        <button style={{ 
+          ...downloadButtonStyle, 
+          backgroundColor: '#02182B', 
+          width: "190px",
+          height: "50px",
+          color: 'white',
+          fontSize: '18px',
+          marginLeft: "5%",
+        
+        }}>
+          Download
+        </button>
 
+        {/* Description */}
+        <p style={{ 
+          margin: '0',
+          fontSize: '18px',
+          color: '#333',
+          textAlign: 'left',
+          maxWidth: '70%',
+          lineHeight: "30px"
+        }}>
+          Download our Bias Detecting Chrome Extension, a powerful tool that instantly flags biased content related to race, gender, and other social issues as you browse. Using advanced AI and natural language processing, it analyzes text in real-time, providing immediate feedback and explanations to help you recognize and understand potential bias. Designed for seamless integration, our extension promotes social awareness and empowers users to navigate the internet more critically. Get it today to stay informed and combat misinformation effortlessly!          
+        </p>
+      </div>
       {/* Main Content */}
       <h1>Bias Detector</h1>
       <form onSubmit={handleSubmit}>
-        <div>
+        <div style={{margin:"25px"}}>
           <label>Website URL</label>
           <br />
           <input
@@ -131,7 +167,7 @@ function App() {
           />
 
         </div>
-        <div style={{ marginTop: '10px' }}>
+        <div style={{ margin: '25px' }}>
           <label>Or Paste Text</label>
           <br />
           <textarea
@@ -148,7 +184,17 @@ function App() {
         <button
           type="submit"
           disabled={loading}
-          style={{ marginTop: '10px', padding: '10px 20px' }}
+          style={{ 
+            ...downloadButtonStyle, 
+            backgroundColor: '#02182B', 
+            width: "140px",
+            height: "40px",
+            color: 'white',
+            fontSize: '18px',
+            marginLeft: "5%",
+            marginTop: "15px",
+          
+          }}
         >
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>
