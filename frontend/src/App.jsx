@@ -5,16 +5,31 @@ import './App.css';
 import mainIcon from "../../extension/mainicon.png";
 import Founder from "./founder.jsx";
 
+// Helper function to parse bold markdown (i.e. **bold text**)
+function parseBold(text) {
+  // Split the text on occurrences of **...**
+  const parts = text.split(/(\*\*.*?\*\*)/);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      // Remove the ** markers and wrap in <strong>
+      const boldText = part.slice(2, -2);
+      return <strong key={idx}>{boldText}</strong>;
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
 // Home component (your working App.jsx content)
 function Home() {
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
-  const [result, setResult] = useState('');
+  // Store result as an object (e.g., { analysis: [...] })
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setResult('');
+    setResult(null);
     setLoading(true);
 
     try {
@@ -28,15 +43,15 @@ function Home() {
           timeout: 300000  // Optional: set a timeout of 10 seconds
         }
       );
-      // Display the full JSON response in a formatted string.
-      setResult(JSON.stringify(response.data, null, 2));
+      // Save the parsed JSON response
+      setResult(response.data);
     } catch (error) {
       if (error.response) {
-        setResult(`Error: ${error.response.data.detail}`);
+        setResult({ analysis: [`Error: ${error.response.data.detail}`] });
       } else if (error.request) {
-        setResult("Error: No response received from the server.");
+        setResult({ analysis: ["Error: No response received from the server."] });
       } else {
-        setResult(`Error: ${error.message}`);
+        setResult({ analysis: [`Error: ${error.message}`] });
       }
     }
     setLoading(false);
@@ -91,28 +106,31 @@ function Home() {
             alt="Logo"
             style={{ height: '40px', marginRight: '10px' }}
           />
-          <div style={{ fontSize: '22px', fontWeight: 'bold' }}>Fake News Detector</div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold' }}>
+            Fake News Detector
+          </div>
         </div>
 
         {/* Right: Navigation Links + Download Button */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <a href="#" style={navLinkStyle}>
+          <Link to="/" style={navLinkStyle}>
             Home
-          </a>
+          </Link>
           <a href=".../..About.jsx" style={navLinkStyle}>
             About
           </a>
-          <a href="founder" style={navLinkStyle}>
+          <Link to="/founder" style={navLinkStyle}>
             Founders
-          </a>
+          </Link>
           <button style={downloadButtonStyle}>Download Extension</button>
         </div>
       </nav>
 
       {/* Space to prevent content from being hidden under the fixed navbar */}
       <div style={{ height: '90px' }}></div>
-        {/* Download & Description Section */}
-        <div style={{
+
+      {/* Download & Description Section */}
+      <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -131,7 +149,6 @@ function Home() {
           color: 'white',
           fontSize: '18px',
           marginLeft: "5%",
-        
         }}>
           Download
         </button>
@@ -145,13 +162,14 @@ function Home() {
           maxWidth: '70%',
           lineHeight: "30px"
         }}>
-          Download our Bias Detecting Chrome Extension, a powerful tool that instantly flags biased content related to race, gender, and other social issues as you browse. Using advanced AI and natural language processing, it analyzes text in real-time, providing immediate feedback and explanations to help you recognize and understand potential bias. Designed for seamless integration, our extension promotes social awareness and empowers users to navigate the internet more critically. Get it today to stay informed and combat misinformation effortlessly!          
+          Download our Bias Detecting Chrome Extension, a powerful tool that instantly flags biased content related to race, gender, and other social issues as you browse. Using advanced AI and natural language processing, it analyzes text in real-time, providing immediate feedback and explanations to help you recognize and understand potential bias. Designed for seamless integration, our extension promotes social awareness and empowers users to navigate the internet more critically. Get it today to stay informed and combat misinformation effortlessly!
         </p>
       </div>
+
       {/* Main Content */}
       <h1>Bias Detector</h1>
       <form onSubmit={handleSubmit}>
-        <div style={{margin:"25px"}}>
+        <div style={{ margin: "25px" }}>
           <label>Website URL</label>
           <br />
           <input
@@ -163,7 +181,7 @@ function Home() {
             }}
             placeholder="Enter website URL"
             style={{ width: '80%', padding: '8px' }}
-            disabled={text.length > 0} // Disable if text is entered
+            disabled={text.length > 0}
           />
         </div>
         <div style={{ margin: '25px' }}>
@@ -173,11 +191,11 @@ function Home() {
             value={text}
             onChange={(e) => {
               setText(e.target.value);
-              setUrl(''); // Clear URL input
+              setUrl('');
             }}
             placeholder="Paste text here"
             style={{ width: '80%', height: '150px', padding: '8px' }}
-            disabled={url.length > 0} // Disable if URL is entered
+            disabled={url.length > 0}
           />
         </div>
         <button
@@ -192,7 +210,6 @@ function Home() {
             fontSize: '18px',
             marginLeft: "5%",
             marginTop: "15px",
-          
           }}
         >
           {loading ? 'Analyzing...' : 'Analyze'}
@@ -200,17 +217,54 @@ function Home() {
       </form>
 
       {result && (
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ 
+          marginTop: '20px', 
+          backgroundColor: '#f4f4f4', 
+          padding: '15px', 
+          borderRadius: '5px',
+          lineHeight: '1.6em'
+        }}>
           <h2>Analysis Result</h2>
-          <pre
-            style={{
-              whiteSpace: 'pre-wrap',
-              backgroundColor: '#f4f4f4',
-              padding: '10px',
-            }}
-          >
-            {result}
-          </pre>
+          {Array.isArray(result.analysis) ? (
+            result.analysis.map((para, idx) => {
+              const trimmed = para.trim();
+              if (trimmed.startsWith('#### ')) {
+                return (
+                  <h4 key={idx} style={{ marginBottom: '15px' }}>
+                    {parseBold(trimmed.substring(5))}
+                  </h4>
+                );
+              } else if (trimmed.startsWith('### ')) {
+                return (
+                  <h3 key={idx} style={{ marginBottom: '15px' }}>
+                    {parseBold(trimmed.substring(4))}
+                  </h3>
+                );
+              } else if (trimmed.startsWith('## ')) {
+                return (
+                  <h2 key={idx} style={{ marginBottom: '15px' }}>
+                    {parseBold(trimmed.substring(3))}
+                  </h2>
+                );
+              } else if (trimmed.startsWith('# ')) {
+                return (
+                  <h1 key={idx} style={{ marginBottom: '15px' }}>
+                    {parseBold(trimmed.substring(2))}
+                  </h1>
+                );
+              } else {
+                return (
+                  <p key={idx} style={{ marginBottom: '15px' }}>
+                    {parseBold(para)}
+                  </p>
+                );
+              }
+            })
+          ) : (
+            <pre style={{ whiteSpace: 'pre-wrap' }}>
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          )}
         </div>
       )}
     </div>
