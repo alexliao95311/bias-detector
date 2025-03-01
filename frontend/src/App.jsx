@@ -102,7 +102,7 @@ function Home() {
           <a href=".../..About.jsx" style={navLinkStyle}>
             About
           </a>
-          <a href="#founders" style={navLinkStyle}>
+          <a href="founder" style={navLinkStyle}>
             Founders
           </a>
           <button style={downloadButtonStyle}>Download Extension</button>
