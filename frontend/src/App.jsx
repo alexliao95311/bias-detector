@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import './App.css';
 import mainIcon from "../../extension/mainicon.png";
 import Founder from "./founder.jsx";
+import { About, Navbar } from './About';
 
 // Helper function to parse bold markdown (i.e. **bold text**)
 function parseBold(text) {
@@ -82,7 +83,7 @@ function Home() {
 
   return (
     <div className="App" style={{ padding: '20px' }}>
-      {/* Navbar */}
+      {/* Inline Navbar */}
       <nav
         style={{
           position: 'fixed',
@@ -111,15 +112,9 @@ function Home() {
 
         {/* Right: Navigation Links + Download Button */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Link to="/" style={navLinkStyle}>
-            Home
-          </Link>
-          <a href=".../..About.jsx" style={navLinkStyle}>
-            About
-          </a>
-          <Link to="/founder" style={navLinkStyle}>
-            Founders
-          </Link>
+          <Link to="/" style={navLinkStyle}>Home</Link>
+          <Link to="/about" style={navLinkStyle}>About</Link>
+          <Link to="/founder" style={navLinkStyle}>Founders</Link>
           <button style={downloadButtonStyle}>Download Extension</button>
         </div>
       </nav>
@@ -267,13 +262,14 @@ function Home() {
   );
 }
 
-// Main App with Router added for the Founder page
 function App() {
   return (
     <Router>
+      <Navbar /> {/* This will render the navbar globally */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/founder" element={<Founder />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </Router>
   );
