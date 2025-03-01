@@ -77,6 +77,7 @@ const styles = {
   container: {
     textAlign: "center",
     padding: "20px",
+    paddingTop: "80px", // Increased padding to create more space between navbar and image
   },
   title: {
     fontSize: "32px",
