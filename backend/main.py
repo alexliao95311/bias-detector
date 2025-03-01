@@ -10,6 +10,7 @@ import logging
 import aiohttp
 import asyncio
 import json
+from bs4 import BeautifulSoup  # For web scraping
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -51,6 +52,7 @@ class AnalyzeRequest(BaseModel):
     text: str = None
 
 # Helper function to call OpenRouter API asynchronously using the specified model
+# Helper function to call OpenRouter API asynchronously using the specified model
 async def analyze_text_with_openrouter(text: str) -> str:
     messages = [
         {
@@ -64,28 +66,43 @@ async def analyze_text_with_openrouter(text: str) -> str:
         {"role": "user", "content": text}
     ]
     payload = {
-        "model": "mistralai/mistral-small-24b-instruct-2501",  # Using the new model
+        "model": "mistralai/mistral-small-24b-instruct-2501",  # Using the specified model
         "messages": messages,
         "temperature": 0.7,
     }
+    
+    # Log the payload exactly as it will be sent
+    logger.info("Payload sent to OpenRouter API:\n%s", json.dumps(payload, indent=4))
+    
     openrouter_url = os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions")
     headers = {
         "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
         "Content-Type": "application/json",
     }
     logger.info(f"Sending request to OpenRouter API at {openrouter_url} using model mistralai/mistral-small-24b-instruct-2501")
-    async with session.post(openrouter_url, json=payload, headers=headers) as response:
-        if response.status != 200:
-            error_detail = await response.text()
-            logger.error(f"OpenRouter API error: {error_detail}")
-            raise HTTPException(status_code=response.status, detail=f"Error from OpenRouter API: {error_detail}")
-        data = await response.json()
-        try:
-            analysis_result = data["choices"][0]["message"]["content"].strip()
-        except (KeyError, IndexError):
-            logger.error("Invalid response format from OpenRouter API")
-            raise HTTPException(status_code=500, detail="Invalid response format from OpenRouter API")
-        return analysis_result
+    
+    # Set a timeout (e.g., 30 seconds)
+    timeout = aiohttp.ClientTimeout(total=30)
+    
+    try:
+        async with session.post(openrouter_url, json=payload, headers=headers, timeout=timeout) as response:
+            if response.status != 200:
+                error_detail = await response.text()
+                logger.error(f"OpenRouter API error: {error_detail}")
+                raise HTTPException(status_code=response.status, detail=f"Error from OpenRouter API: {error_detail}")
+            data = await response.json()
+            try:
+                analysis_result = data["choices"][0]["message"]["content"].strip()
+            except (KeyError, IndexError):
+                logger.error("Invalid response format from OpenRouter API")
+                raise HTTPException(status_code=500, detail="Invalid response format from OpenRouter API")
+            return analysis_result
+    except asyncio.TimeoutError:
+        logger.error("Request to OpenRouter API timed out.")
+        raise HTTPException(status_code=504, detail="Request to OpenRouter API timed out.")
+    except aiohttp.ClientError as e:
+        logger.error(f"Client error when calling OpenRouter API: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Client error when calling OpenRouter API: {str(e)}")
 
 # /analyze endpoint that returns only the formatted analysis
 @app.post("/analyze")
@@ -98,7 +115,7 @@ async def analyze_bias(request: AnalyzeRequest):
 
     input_text = request.text
 
-    # If a URL is provided and text is empty, fetch website content asynchronously
+    # If a URL is provided and text is empty, fetch website content asynchronously and scrape text
     if request.url and not request.text:
         try:
             logger.info(f"Fetching content from URL: {request.url}")
@@ -106,10 +123,17 @@ async def analyze_bias(request: AnalyzeRequest):
                 if resp.status != 200:
                     logger.error("Failed to fetch website content. Status: " + str(resp.status))
                     raise HTTPException(status_code=400, detail="Could not fetch website content.")
-                input_text = await resp.text()
+                raw_html = await resp.text()
+                # Use BeautifulSoup to parse HTML and extract text
+                soup = BeautifulSoup(raw_html, "html.parser")
+                # Remove unwanted elements (scripts, styles, etc.)
+                for tag in soup(["script", "style"]):
+                    tag.decompose()
+                input_text = soup.get_text(separator="\n", strip=True)
+                logger.info("Extracted text from webpage.")
         except Exception as e:
-            logger.exception("Error fetching URL:")
-            raise HTTPException(status_code=500, detail=f"Error fetching URL: {str(e)}")
+            logger.exception("Error fetching or scraping URL:")
+            raise HTTPException(status_code=500, detail=f"Error fetching or scraping URL: {str(e)}")
 
     if not input_text:
         logger.error("No text content available for analysis after fetching.")
@@ -119,12 +143,11 @@ async def analyze_bias(request: AnalyzeRequest):
         analysis_result = await analyze_text_with_openrouter(input_text)
         logger.info("Analysis completed successfully.")
 
-        # Split the analysis into paragraphs for formatting
+        # Format the analysis by splitting it into paragraphs for markdown formatting
         paragraphs = [p.strip() for p in analysis_result.split('\n\n') if p.strip()]
         if not paragraphs:
             paragraphs = [p.strip() for p in analysis_result.split('\n') if p.strip()]
         result_dict = {"analysis": paragraphs}
-
         formatted_json = json.dumps(result_dict, indent=4)
         return Response(content=formatted_json, media_type="application/json")
     except Exception as e:
