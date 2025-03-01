@@ -3,7 +3,6 @@ load_dotenv(override=True)  # Load environment variables from .env
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
 from pydantic import BaseModel
 import os
 import logging
@@ -52,7 +51,6 @@ class AnalyzeRequest(BaseModel):
     text: str = None
 
 # Helper function to call OpenRouter API asynchronously using the specified model
-# Helper function to call OpenRouter API asynchronously using the specified model
 async def analyze_text_with_openrouter(text: str) -> str:
     messages = [
         {
@@ -83,7 +81,6 @@ async def analyze_text_with_openrouter(text: str) -> str:
     
     # Set a timeout (e.g., 30 seconds)
     timeout = aiohttp.ClientTimeout(total=30)
-    
     try:
         async with session.post(openrouter_url, json=payload, headers=headers, timeout=timeout) as response:
             if response.status != 200:
@@ -126,7 +123,6 @@ async def analyze_bias(request: AnalyzeRequest):
                 raw_html = await resp.text()
                 # Use BeautifulSoup to parse HTML and extract text
                 soup = BeautifulSoup(raw_html, "html.parser")
-                # Remove unwanted elements (scripts, styles, etc.)
                 for tag in soup(["script", "style"]):
                     tag.decompose()
                 input_text = soup.get_text(separator="\n", strip=True)
@@ -143,13 +139,14 @@ async def analyze_bias(request: AnalyzeRequest):
         analysis_result = await analyze_text_with_openrouter(input_text)
         logger.info("Analysis completed successfully.")
 
-        # Format the analysis by splitting it into paragraphs for markdown formatting
+        # Format the analysis by splitting it into paragraphs (using double-newlines, fallback to single newlines)
         paragraphs = [p.strip() for p in analysis_result.split('\n\n') if p.strip()]
         if not paragraphs:
             paragraphs = [p.strip() for p in analysis_result.split('\n') if p.strip()]
         result_dict = {"analysis": paragraphs}
-        formatted_json = json.dumps(result_dict, indent=4)
-        return Response(content=formatted_json, media_type="application/json")
+        logger.info("Returning response: %s", json.dumps(result_dict, indent=4))
+        # Return the result_dict directly, letting FastAPI handle JSON conversion
+        return result_dict
     except Exception as e:
         logger.exception("Exception while calling OpenRouter API:")
         raise HTTPException(status_code=500, detail=f"OpenRouter API error: {str(e)}")
