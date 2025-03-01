@@ -4,16 +4,24 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Window Container */
-.window {
-    width: 100%;
-    height: 100%;
-    background: white;
+/* Window Container (Outer Box) */
+.window-container {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    width: 320px;
+    height: 250px;
+    background: black;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Prevents content from overflowing */
     display: flex;
     flex-direction: column;
+    padding: 10px;
+    z-index: 99999; /* Ensures it stays on top */
+    resize: both; /* Allows resizing */
+    min-width: 200px;
+    min-height: 150px;
 }
 
 /* Header */
@@ -22,9 +30,11 @@ body {
     justify-content: space-between;
     align-items: center;
     background: #007bff;
-    color: white;
+    color: black;
     padding: 10px;
     font-weight: bold;
+    cursor: move; /* Indicates draggable */
+    user-select: none;
 }
 
 /* Close Button */
@@ -40,7 +50,7 @@ body {
     color: #ff4d4d;
 }
 
-/* Content */
+/* Content Area (Inside the Window) */
 .content {
     display: flex;
     flex-direction: column;
@@ -48,6 +58,22 @@ body {
     justify-content: center;
     padding: 20px;
     text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-y: auto; /* Enables scrolling */
+    max-height: 180px; /* Prevents overflow */
+    scrollbar-width: thin; /* Custom thin scrollbar */
+    scrollbar-color: #007bff #f0f0f0;
+}
+
+/* Custom Scrollbar for Webkit Browsers */
+.content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: #007bff;
+    border-radius: 4px;
 }
 
 /* Loader Animation */
@@ -64,4 +90,20 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Analysis Result */
+#analysis-result {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Status Message */
+#status-message {
+    font-size: 14px;
+    color: #007bff;
+    margin-top: 10px;
 }
