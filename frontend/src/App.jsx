@@ -111,7 +111,7 @@ function Home() {
 
         {/* Right: Navigation Links + Download Button */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <a href="/" style={navLinkStyle}>
+          <Link to="/" style={navLinkStyle}>
             Home
           </Link>
           <a href=".../..About.jsx" style={navLinkStyle}>
@@ -146,7 +146,6 @@ function Home() {
           height: "50px",
           color: 'white',
           fontSize: '18px',
-          marginLeft: "5%",
         }}>
           Download
         </button>
@@ -167,8 +166,8 @@ function Home() {
       {/* Main Content */}
       <h1>Bias Detector</h1>
       <form onSubmit={handleSubmit}>
-        <div style={{margin:"50px"}}>
-          <label style={{fontSize:"25px"}}>Website URL</label>
+        <div style={{ margin: "50px" }}>
+          <label style={{ fontSize: "25px" }}>Website URL</label>
           <br />
           <input
             type="text"
@@ -183,7 +182,7 @@ function Home() {
           />
         </div>
         <div style={{ margin: '50px' }}>
-          <label style={{fontSize:"25px"}}>Or Paste Text</label>
+          <label style={{ fontSize: "25px" }}>Or Paste Text</label>
           <br />
           <textarea
             value={text}
