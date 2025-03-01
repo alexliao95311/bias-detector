@@ -106,14 +106,12 @@ function Home() {
             alt="Logo"
             style={{ height: '40px', marginRight: '10px' }}
           />
-          <div style={{ fontSize: '22px', fontWeight: 'bold' }}>
-            Fake News Detector
-          </div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold' }}>Bias News Detector</div>
         </div>
 
         {/* Right: Navigation Links + Download Button */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Link to="/" style={navLinkStyle}>
+          <a href="/" style={navLinkStyle}>
             Home
           </Link>
           <a href=".../..About.jsx" style={navLinkStyle}>
@@ -169,8 +167,8 @@ function Home() {
       {/* Main Content */}
       <h1>Bias Detector</h1>
       <form onSubmit={handleSubmit}>
-        <div style={{ margin: "25px" }}>
-          <label>Website URL</label>
+        <div style={{margin:"50px"}}>
+          <label style={{fontSize:"25px"}}>Website URL</label>
           <br />
           <input
             type="text"
@@ -184,8 +182,8 @@ function Home() {
             disabled={text.length > 0}
           />
         </div>
-        <div style={{ margin: '25px' }}>
-          <label>Or Paste Text</label>
+        <div style={{ margin: '50px' }}>
+          <label style={{fontSize:"25px"}}>Or Paste Text</label>
           <br />
           <textarea
             value={text}
@@ -208,7 +206,6 @@ function Home() {
             height: "40px",
             color: 'white',
             fontSize: '18px',
-            marginLeft: "5%",
             marginTop: "15px",
           }}
         >
