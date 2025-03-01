@@ -28,13 +28,13 @@ function About() {
       <section className="about-box">
         <h2 className="about-subheading">Why Bias News Detector?</h2>
         <p className="about-description">
-          In today's world, misinformation is widespread, and distinguishing between factual content and fake news can be challenging.
-          We created Fake News Detector to bring about change by empowering people to make smarter decisions online.
+          In today's world, misinformation is widespread, and distinguishing between factual content and biased news can be challenging.
+          We created Biased News Detector to bring about change by empowering people to make smarter decisions online.
           With the rise of social media and other online platforms, the importance of verifying information has never been greater.
         </p>
         <p className="about-description">
-          Our goal is to raise awareness about the prevalence of fake news and equip you with the tools to protect yourself from harmful,
-          misleading information. By providing a simple and efficient solution to detect fake news, we hope to encourage critical thinking
+          Our goal is to raise awareness about the prevalence of biased news and equip you with the tools to protect yourself from harmful,
+          misleading information. By providing a simple and efficient solution to detect biased news, we hope to encourage critical thinking
           and promote a more informed society.
         </p>
       </section>
