@@ -3,12 +3,15 @@ load_dotenv(override=True)  # Load environment variables from .env
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.responses import StreamingResponse
 from pydantic import BaseModel
 import os
 import logging
 import aiohttp
 import asyncio
 import json
+import io
 from bs4 import BeautifulSoup  # For web scraping
 
 # Set up logging
@@ -64,12 +67,11 @@ async def analyze_text_with_openrouter(text: str) -> str:
         {"role": "user", "content": text}
     ]
     payload = {
-        "model": "mistralai/mistral-small-24b-instruct-2501",  # Using the specified model
+        "model": "mistralai/mistral-small-24b-instruct-2501",
         "messages": messages,
         "temperature": 0.7,
     }
     
-    # Log the payload exactly as it will be sent
     logger.info("Payload sent to OpenRouter API:\n%s", json.dumps(payload, indent=4))
     
     openrouter_url = os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions")
@@ -79,7 +81,6 @@ async def analyze_text_with_openrouter(text: str) -> str:
     }
     logger.info(f"Sending request to OpenRouter API at {openrouter_url} using model mistralai/mistral-small-24b-instruct-2501")
     
-    # Set a timeout (e.g., 30 seconds)
     timeout = aiohttp.ClientTimeout(total=30)
     try:
         async with session.post(openrouter_url, json=payload, headers=headers, timeout=timeout) as response:
@@ -101,7 +102,7 @@ async def analyze_text_with_openrouter(text: str) -> str:
         logger.error(f"Client error when calling OpenRouter API: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Client error when calling OpenRouter API: {str(e)}")
 
-# /analyze endpoint that returns only the formatted analysis
+# /analyze endpoint that returns only the formatted analysis using StreamingResponse
 @app.post("/analyze")
 async def analyze_bias(request: AnalyzeRequest):
     logger.info("Received analysis request.")
@@ -112,7 +113,6 @@ async def analyze_bias(request: AnalyzeRequest):
 
     input_text = request.text
 
-    # If a URL is provided and text is empty, fetch website content asynchronously and scrape text
     if request.url and not request.text:
         try:
             logger.info(f"Fetching content from URL: {request.url}")
@@ -121,7 +121,6 @@ async def analyze_bias(request: AnalyzeRequest):
                     logger.error("Failed to fetch website content. Status: " + str(resp.status))
                     raise HTTPException(status_code=400, detail="Could not fetch website content.")
                 raw_html = await resp.text()
-                # Use BeautifulSoup to parse HTML and extract text
                 soup = BeautifulSoup(raw_html, "html.parser")
                 for tag in soup(["script", "style"]):
                     tag.decompose()
@@ -139,14 +138,15 @@ async def analyze_bias(request: AnalyzeRequest):
         analysis_result = await analyze_text_with_openrouter(input_text)
         logger.info("Analysis completed successfully.")
 
-        # Format the analysis by splitting it into paragraphs (using double-newlines, fallback to single newlines)
         paragraphs = [p.strip() for p in analysis_result.split('\n\n') if p.strip()]
         if not paragraphs:
             paragraphs = [p.strip() for p in analysis_result.split('\n') if p.strip()]
         result_dict = {"analysis": paragraphs}
         logger.info("Returning response: %s", json.dumps(result_dict, indent=4))
-        # Return the result_dict directly, letting FastAPI handle JSON conversion
-        return result_dict
+        
+        # Prepare the JSON bytes
+        json_bytes = json.dumps(result_dict, indent=4).encode('utf-8')
+        return StreamingResponse(io.BytesIO(json_bytes), media_type="application/json")
     except Exception as e:
         logger.exception("Exception while calling OpenRouter API:")
         raise HTTPException(status_code=500, detail=f"OpenRouter API error: {str(e)}")
