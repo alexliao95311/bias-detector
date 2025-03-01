@@ -29,7 +29,7 @@ function Founder() {
 
   return (
     <div style={styles.container}>
-      <img src={group} alt="hello" />
+      <img src={group} alt="hello" style={{ width: "300px", height: "auto" }} /> {/* Image resized */}
       <h1 style={styles.title}>Meet the Team</h1>
       {team.map((member, index) => (
         <div
