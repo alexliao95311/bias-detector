@@ -1,71 +1,132 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import requests
-from bs4 import BeautifulSoup
-import os
-from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from pydantic import BaseModel
+import os
+import logging
+import aiohttp
+import asyncio
+import json
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize FastAPI application
 app = FastAPI()
 
-# Allow requests from the frontend during development.
+@app.get("/")
+async def root():
+    return {"message": "FastAPI backend is running!"}
+
+# Configure CORS
+backend_origin = os.getenv("BACKEND_ORIGIN", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # adjust this in production
+    allow_origins=[backend_origin],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Set your OpenRouter API key in your environment or directly here (not recommended for prod)
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# Replace with the actual OpenRouter API endpoint
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/analyze"
+# Global aiohttp session; will be created at startup.
+session: aiohttp.ClientSession = None
 
+@app.on_event("startup")
+async def startup_event():
+    global session
+    session = aiohttp.ClientSession()
+    logger.info("Backend is up and running on port 8000!")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await session.close()
+
+# Request model for analysis
 class AnalyzeRequest(BaseModel):
     url: str = None
     text: str = None
 
-@app.post("/analyze")
-def analyze(data: AnalyzeRequest):
-    # Determine the source text
-    content = ""
-    if data.url:
-        try:
-            resp = requests.get(data.url)
-            if resp.status_code != 200:
-                raise HTTPException(status_code=400, detail="Failed to fetch the provided URL.")
-            soup = BeautifulSoup(resp.content, "html.parser")
-            content = soup.get_text(separator="\n")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error fetching URL: {str(e)}")
-    elif data.text:
-        content = data.text
-    else:
-        raise HTTPException(status_code=400, detail="Please provide either a URL or text.")
-
-    # Construct the prompt for bias detection and fact checking
-    prompt = (
-        "Analyze the following text for bias and fact-check its sources. "
-        "Provide an assessment of any detected bias and list the sources with your evaluation: \n\n"
-        f"{content}"
-    )
-
+# Helper function to call OpenRouter API asynchronously using the specified model
+async def analyze_text_with_openrouter(text: str) -> str:
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a bias detection and fact-checking assistant. "
+                "Analyze the provided text, identify any bias, factual errors, or other inaccuracies. "
+                "Explain your findings in detail and point out specific errors if present."
+            )
+        },
+        {"role": "user", "content": text}
+    ]
+    payload = {
+        "model": "mistralai/mistral-small-24b-instruct-2501",  # Using the new model
+        "messages": messages,
+        "temperature": 0.7,
+    }
+    openrouter_url = os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions")
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "prompt": prompt,
-        "model": "gpt-4",  # adjust based on the available models from your API
-        "max_tokens": 500,
-    }
+    logger.info(f"Sending request to OpenRouter API at {openrouter_url} using model mistralai/mistral-small-24b-instruct-2501")
+    async with session.post(openrouter_url, json=payload, headers=headers) as response:
+        if response.status != 200:
+            error_detail = await response.text()
+            logger.error(f"OpenRouter API error: {error_detail}")
+            raise HTTPException(status_code=response.status, detail=f"Error from OpenRouter API: {error_detail}")
+        data = await response.json()
+        try:
+            analysis_result = data["choices"][0]["message"]["content"].strip()
+        except (KeyError, IndexError):
+            logger.error("Invalid response format from OpenRouter API")
+            raise HTTPException(status_code=500, detail="Invalid response format from OpenRouter API")
+        return analysis_result
+
+# /analyze endpoint that returns only the formatted analysis
+@app.post("/analyze")
+async def analyze_bias(request: AnalyzeRequest):
+    logger.info("Received analysis request.")
+
+    if not request.url and not request.text:
+        logger.error("No URL or text provided.")
+        raise HTTPException(status_code=400, detail="Please provide either a URL or text to analyze.")
+
+    input_text = request.text
+
+    # If a URL is provided and text is empty, fetch website content asynchronously
+    if request.url and not request.text:
+        try:
+            logger.info(f"Fetching content from URL: {request.url}")
+            async with session.get(request.url) as resp:
+                if resp.status != 200:
+                    logger.error("Failed to fetch website content. Status: " + str(resp.status))
+                    raise HTTPException(status_code=400, detail="Could not fetch website content.")
+                input_text = await resp.text()
+        except Exception as e:
+            logger.exception("Error fetching URL:")
+            raise HTTPException(status_code=500, detail=f"Error fetching URL: {str(e)}")
+
+    if not input_text:
+        logger.error("No text content available for analysis after fetching.")
+        raise HTTPException(status_code=400, detail="No text content available for analysis.")
 
     try:
-        response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload)
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="Error returned from OpenRouter API.")
-        result = response.json()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenRouter API: {str(e)}")
+        analysis_result = await analyze_text_with_openrouter(input_text)
+        logger.info("Analysis completed successfully.")
 
-    return {"result": result}
+        # Split the analysis into paragraphs for formatting
+        paragraphs = [p.strip() for p in analysis_result.split('\n\n') if p.strip()]
+        if not paragraphs:
+            paragraphs = [p.strip() for p in analysis_result.split('\n') if p.strip()]
+        result_dict = {"analysis": paragraphs}
+
+        formatted_json = json.dumps(result_dict, indent=4)
+        return Response(content=formatted_json, media_type="application/json")
+    except Exception as e:
+        logger.exception("Exception while calling OpenRouter API:")
+        raise HTTPException(status_code=500, detail=f"OpenRouter API error: {str(e)}")
