@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
+import mainIcon from "../../extension/mainicon.png";
 
 function App() {
   const [url, setUrl] = useState('');
@@ -41,41 +42,119 @@ function App() {
     setLoading(false);
   };
 
+  // Define navbar link styles
+  const navLinkStyle = {
+    color: 'white',
+    textDecoration: 'none',
+    margin: '0 15px',
+    fontSize: '18px',
+    fontWeight: '500',
+  };
+
+  // Define download button styles
+  const downloadButtonStyle = {
+    backgroundColor: 'white',
+    color: '#007bff',
+    border: 'none',
+    padding: '10px 20px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    borderRadius: '5px',
+    marginLeft: '15px',
+    whiteSpace: 'nowrap',
+  };
+
   return (
     <div className="App" style={{ padding: '20px' }}>
+      {/* Navbar */}
+      <nav
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          backgroundColor: '#02182B',
+          padding: '15px 30px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: 'white',
+          zIndex: 1000,
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* Left: Logo */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            src={mainIcon}
+            alt="Logo"
+            style={{ height: '40px', marginRight: '10px' }}
+          ></img>
+          <div style={{ fontSize: '22px', fontWeight: 'bold' }}>Fake News Detector</div>
+        </div>
+
+        {/* Right: Navigation Links + Download Button */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <a href="#" style={navLinkStyle}>
+            Home
+          </a>
+          <a href="#about" style={navLinkStyle}>
+            About
+          </a>
+          <a href="#founders" style={navLinkStyle}>
+            Founders
+          </a>
+          <button style={downloadButtonStyle}>Download</button>
+        </div>
+      </nav>
+
+      {/* Space to prevent content from being hidden under the fixed navbar */}
+      <div style={{ height: '80px' }}></div>
+
+      {/* Main Content */}
       <h1>Bias Detector</h1>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Website URL:</label><br />
-          <input 
-            type="text" 
-            value={url} 
-            onChange={(e) => setUrl(e.target.value)} 
-            placeholder="Enter website URL" 
+          <label>Website URL</label>
+          <br />
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Enter website URL"
             style={{ width: '80%', padding: '8px' }}
           />
         </div>
         <div style={{ marginTop: '10px' }}>
-          <label>Or Paste Text:</label><br />
-          <textarea 
-            value={text} 
-            onChange={(e) => setText(e.target.value)} 
-            placeholder="Paste text here" 
+          <label>Or Paste Text</label>
+          <br />
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Paste text here"
             style={{ width: '80%', height: '150px', padding: '8px' }}
           />
         </div>
-        <button 
-          type="submit" 
-          disabled={loading} 
+        <button
+          type="submit"
+          disabled={loading}
           style={{ marginTop: '10px', padding: '10px 20px' }}
         >
-          {loading ? "Analyzing..." : "Analyze"}
+          {loading ? 'Analyzing...' : 'Analyze'}
         </button>
       </form>
+
       {result && (
         <div style={{ marginTop: '20px' }}>
           <h2>Analysis Result</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f4f4f4', padding: '10px' }}>
+          <pre
+            style={{
+              whiteSpace: 'pre-wrap',
+              backgroundColor: '#f4f4f4',
+              padding: '10px',
+            }}
+          >
             {result}
           </pre>
         </div>
