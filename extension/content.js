@@ -29,12 +29,35 @@ header.style.cssText = `
     cursor: grab;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    padding: 0 10px;
     font-size: 14px;
     font-weight: bold;
     user-select: none;
 `;
-header.innerText = "Drag me";
+
+// Add title to the header
+const title = document.createElement("span");
+title.innerText = "Bias Detector";
+header.appendChild(title);
+
+// Create close button
+const closeButton = document.createElement("button");
+closeButton.innerText = "×";
+closeButton.style.cssText = `
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+`;
+
+closeButton.addEventListener("click", () => {
+    container.remove(); // Remove the entire floating container
+});
+
+// Append close button and title to the header
+header.appendChild(closeButton);
 
 // Create the iframe
 const iframe = document.createElement("iframe");
@@ -46,7 +69,7 @@ iframe.style.cssText = `
     background: white;
 `;
 
-// Append elements
+// Append header and iframe to the container
 container.appendChild(header);
 container.appendChild(iframe);
 document.body.appendChild(container);
