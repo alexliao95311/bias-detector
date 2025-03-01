@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import './App.css';
 import mainIcon from "../../extension/mainicon.png";
+import Founder from "./founder.jsx";
 
-function App() {
+// Home component (your working App.jsx content)
+function Home() {
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [result, setResult] = useState('');
@@ -29,13 +32,10 @@ function App() {
       setResult(JSON.stringify(response.data, null, 2));
     } catch (error) {
       if (error.response) {
-        // Server responded with a status outside the 2xx range.
         setResult(`Error: ${error.response.data.detail}`);
       } else if (error.request) {
-        // Request was made but no response received.
         setResult("Error: No response received from the server.");
       } else {
-        // Something went wrong setting up the request.
         setResult(`Error: ${error.message}`);
       }
     }
@@ -90,21 +90,21 @@ function App() {
             src={mainIcon}
             alt="Logo"
             style={{ height: '40px', marginRight: '10px' }}
-          ></img>
+          />
           <div style={{ fontSize: '22px', fontWeight: 'bold' }}>Fake News Detector</div>
         </div>
 
         {/* Right: Navigation Links + Download Button */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <a href="#" style={navLinkStyle}>
+          <Link to="/" style={navLinkStyle}>
             Home
-          </a>
+          </Link>
           <a href="#about" style={navLinkStyle}>
             About
           </a>
-          <a href="#founders" style={navLinkStyle}>
+          <Link to="/founder" style={navLinkStyle}>
             Founders
-          </a>
+          </Link>
           <button style={downloadButtonStyle}>Download</button>
         </div>
       </nav>
@@ -129,7 +129,6 @@ function App() {
             style={{ width: '80%', padding: '8px' }}
             disabled={text.length > 0} // Disable if text is entered
           />
-
         </div>
         <div style={{ marginTop: '10px' }}>
           <label>Or Paste Text</label>
@@ -169,6 +168,18 @@ function App() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main App with Router added for the Founder page
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/founder" element={<Founder />} />
+      </Routes>
+    </Router>
   );
 }
 
