@@ -74,7 +74,7 @@ function App() {
           top: 0,
           left: 0,
           width: '100%',
-          backgroundColor: '#007bff',
+          backgroundColor: '#02182B',
           padding: '15px 30px',
           display: 'flex',
           justifyContent: 'space-between',
