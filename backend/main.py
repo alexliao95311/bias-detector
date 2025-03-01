@@ -83,7 +83,7 @@ async def analyze_text_with_openrouter(text: str) -> str:
         {"role": "user", "content": text}
     ]
     payload = {
-        "model": "mistralai/mistral-small-24b-instruct-2501",
+        "model": "openai/gpt-4o-mini",
         "messages": messages,
         "temperature": 0.7,
     }
