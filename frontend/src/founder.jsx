@@ -1,7 +1,9 @@
-
-import React from "react";
+import React, { useState } from "react";
+import group from "./assets/group.png";
 
 function Founder() {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   const team = [
     {
       name: "Vaidehi Akbari",
@@ -27,9 +29,18 @@ function Founder() {
 
   return (
     <div style={styles.container}>
+      <img src={group} alt="hello" />
       <h1 style={styles.title}>Meet the Team</h1>
       {team.map((member, index) => (
-        <div key={index} style={styles.bioContainer}>
+        <div
+          key={index}
+          style={{
+            ...styles.bioContainer,
+            ...(hoveredIndex === index ? styles.bioContainerHover : {}),
+          }}
+          onMouseEnter={() => setHoveredIndex(index)} // Set index on hover
+          onMouseLeave={() => setHoveredIndex(null)} // Reset on hover out
+        >
           <h2>{member.name}</h2>
           <p>{member.bio}</p>
         </div>
@@ -57,6 +68,11 @@ const styles = {
     marginLeft: "auto",
     marginRight: "auto",
     background: "#f9f9f9",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease", // Smooth transition for hover effect
+  },
+  bioContainerHover: {
+    transform: "scale(1.05)", // Slightly enlarges the box
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", // Adds a subtle shadow
   },
   link: {
     textDecoration: "none",
