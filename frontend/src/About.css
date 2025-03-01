@@ -18,12 +18,16 @@
     color: #02182B;
     margin-bottom: 40px;
     text-shadow: none; /* Removed shadow from title */
+    padding-top: 90px;
+    padding-bottom: 40px;
   }
 
   .about-box {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 30px;
+    padding-left: 60px;
+    padding-right: 60px;
     margin-bottom: 30px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for individual boxes */
     transition: box-shadow 0.3s ease; /* Smooth transition for hover effect */
