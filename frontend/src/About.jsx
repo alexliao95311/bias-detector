@@ -99,7 +99,7 @@ function Navbar() {
         <Link to="/" style={navLinkStyle}>Home</Link>
         <Link to="/about" style={navLinkStyle}>About</Link>
         <Link to="/founder" style={navLinkStyle}>Founders</Link>
-        <button style={downloadButtonStyle}>Download</button>
+        <button style={downloadButtonStyle}>Download Extension</button>
       </div>
     </nav>
   );
