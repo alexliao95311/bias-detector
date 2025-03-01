@@ -4,3 +4,4 @@ requests
 pydantic
 beautifulsoup4
 dotenv
+aiohttp

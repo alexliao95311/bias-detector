@@ -12,7 +12,6 @@ import asyncio
 import json
 from bs4 import BeautifulSoup  # For web scraping
 
-
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,48 +51,21 @@ class AnalyzeRequest(BaseModel):
     url: str = None
     text: str = None
 
-# Helper function to fetch latest info using DuckDuckGo Instant Answer API
-async def fetch_latest_info(query: str) -> str:
-    search_url = "https://api.duckduckgo.com/"
-    params = {
-        "q": query,
-        "format": "json",
-        "no_html": 1,
-        "skip_disambig": 1
-    }
-    try:
-        async with session.get(search_url, params=params) as response:
-            if response.status != 200:
-                logger.error("DuckDuckGo API error, status: %s", response.status)
-                return "No updated info available due to search API error."
-            data = await response.json()
-            # Use the "AbstractText" as the search result snippet.
-            snippet = data.get("AbstractText", "")
-            if snippet:
-                logger.info("DuckDuckGo snippet: %s", snippet)
-                return snippet
-            else:
-                logger.info("DuckDuckGo returned no snippet.")
-                return "No updated info available."
-    except Exception as e:
-        logger.exception("Error during DuckDuckGo search: %s", str(e))
-        return "No updated info available due to an exception."
-
 # Helper function to call OpenRouter API asynchronously using the specified model
 async def analyze_text_with_openrouter(text: str) -> str:
-    # Fetch recent info for fact-checking.
-    latest_info = await fetch_latest_info("current United States Vice President")
-    
-    # Update the system prompt to instruct the AI to actively "search" and use the fetched info for fact-checking.
+    # Updated system prompt instructions:
+    # The AI is instructed to analyze the provided text, identify any biases or inaccuracies,
+    # and if it knows something might be outdated, it should simply not mention it.
     messages = [
         {
             "role": "system",
             "content": (
-                "You are an advanced fact-checking assistant. Before answering, you MUST perform a simulated search for the latest verified data. "
-                "Use the following fetched search result as your reference: \"" + latest_info + "\". "
-                "Then, analyze the provided text, identify any biases, and fact-check all claims against the latest verified information. "
-                "Include references to your sources if applicable. "
-                "If the fetched information contradicts the claims in the text, explicitly note the discrepancies."
+                "You are a state-of-the-art fact-checking and bias detection assistant. "
+                "Your task is to carefully analyze the provided text to identify biases, inaccuracies, or misinformation. "
+                "If the text is a biased statement, point out where it is biased."
+                "Verify all claims using your most reliable and current knowledge base, and ensure that your response is clear, concise, and well-organized. "
+                "If you suspect that certain information in your database might be outdated, simply omit that detail and focus only on established facts. "
+               
             )
         },
         {"role": "user", "content": text}
