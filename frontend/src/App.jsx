@@ -22,7 +22,7 @@ function App() {
           headers: {
             "Content-Type": "application/json"
           },
-          timeout: 10000  // Optional: set a timeout of 10 seconds
+          timeout: 300000  // Optional: set a timeout of 10 seconds
         }
       );
       // Display the full JSON response in a formatted string.
