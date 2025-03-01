@@ -54,7 +54,7 @@ function App() {
   // Define download button styles
   const downloadButtonStyle = {
     backgroundColor: 'white',
-    color: '#007bff',
+    color: '#02182B',
     border: 'none',
     padding: '10px 20px',
     fontSize: '16px',
@@ -121,19 +121,28 @@ function App() {
           <input
             type="text"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setText(''); // Clear text input
+            }}
             placeholder="Enter website URL"
             style={{ width: '80%', padding: '8px' }}
+            disabled={text.length > 0} // Disable if text is entered
           />
+
         </div>
         <div style={{ marginTop: '10px' }}>
           <label>Or Paste Text</label>
           <br />
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setUrl(''); // Clear URL input
+            }}
             placeholder="Paste text here"
             style={{ width: '80%', height: '150px', padding: '8px' }}
+            disabled={url.length > 0} // Disable if URL is entered
           />
         </div>
         <button
