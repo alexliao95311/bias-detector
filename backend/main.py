@@ -12,6 +12,7 @@ import asyncio
 import json
 from bs4 import BeautifulSoup  # For web scraping
 
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
