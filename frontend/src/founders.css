@@ -1,0 +1,84 @@
+/* Founders.css */
+.founders-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #fff; /* Clean white background */
+    min-height: 100vh; /* Ensures the content fills the full height of the screen */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 120px; /* Add extra space at the top to prevent overlap with navbar */
+  }
+  
+  .founders-title {
+    text-align: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #02182B;
+    margin-bottom: 40px;
+    padding-top: 90px;
+    padding-bottom: 40px;
+  }
+  
+  .founders-box {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 30px;
+    padding-left: 60px;
+    padding-right: 60px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: box-shadow 0.3s ease; /* Smooth transition for hover effect */
+  }
+  
+  .founders-box:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow on hover */
+  }
+  
+  .founders-name {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: #02182B;
+    margin-bottom: 15px;
+  }
+  
+  .founders-bio {
+    font-size: 1.1em;
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  
+  .founders-container img.founders-image {
+    width: 500px;
+    height: auto;
+  }
+  
+  /* Hover effect for individual bio boxes */
+  .founders-box-hover {
+    transform: scale(1.05); /* Slightly enlarges the box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
+  }
+  
+  /* Responsive design for smaller screens */
+  @media (max-width: 768px) {
+    .founders-container {
+      padding: 15px;
+      padding-top: 100px; /* Adjust padding for smaller screens */
+    }
+  
+    .founders-title {
+      font-size: 2em;
+    }
+  
+    .founders-name {
+      font-size: 1.6em;
+    }
+  
+    .founders-bio {
+      font-size: 1em;
+    }
+  }
+  
