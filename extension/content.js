@@ -36,7 +36,7 @@ container.style.cssText = `
     transition: opacity 0.3s ease, transform 0.3s ease;
 `;
 
-// Create the iframe (only iframe, no extra HTML structure)
+// Create the iframe
 const iframe = document.createElement("iframe");
 iframe.src = chrome.runtime.getURL("floating.html");
 iframe.style.cssText = `
@@ -54,7 +54,7 @@ document.body.appendChild(icon);
 document.body.appendChild(container);
 
 // Toggle window visibility on icon click
-icon.addEventListener("click", () => {
+icon.addEventListener("click", async () => {
     if (container.style.display === "none" || container.style.opacity === "0") {
         // Show with animation
         container.style.display = "block";
@@ -62,6 +62,39 @@ icon.addEventListener("click", () => {
             container.style.opacity = "1";
             container.style.transform = "translate(-50%, -50%) scale(1)";
         }, 10);
+
+        // Get URL or text to analyze
+        const url = window.location.href;
+        const selectedText = window.getSelection().toString().trim();
+
+        let textToAnalyze = selectedText || url; // Prioritize selected text if any
+
+        // Send the analysis request to the FastAPI backend
+        if (textToAnalyze) {
+            try {
+                const response = await fetch("http://localhost:8000/analyze", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        text: textToAnalyze, // You can also send the URL here if necessary
+                    }),
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch analysis");
+                }
+
+                const result = await response.json();
+
+                // Pass the result to the iframe (or display it in the window)
+                const iframeWindow = iframe.contentWindow;
+                iframeWindow.postMessage(result, "*");
+
+            } catch (error) {
+                console.error("Error fetching analysis:", error);
+            }
+        }
     } else {
         // Hide with animation
         container.style.opacity = "0";
