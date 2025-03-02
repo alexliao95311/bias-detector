@@ -1,100 +1,98 @@
-// Create the floating container
+// Create the floating icon
+const icon = document.createElement("div");
+icon.id = "bias-detector-icon";
+icon.style.cssText = `
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    background-image: url('${chrome.runtime.getURL("mainicon.png")}');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 10000;
+`;
+
+// Create the floating window (hidden at start)
 const container = document.createElement("div");
 container.id = "floating-container";
 container.style.cssText = `
     position: fixed;
-    bottom: 10px;
-    left: 10px;
-    width: 320px;
-    height: 180px;
+    top: 50%;
+    left: 50%;
+    width: 350px;
+    height: 200px;
     background: white;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     border-radius: 10px;
     z-index: 10000;
-    resize: both;
-    overflow: hidden;
-    border: 2px solid #ccc;
-    display: flex;
-    flex-direction: column;
+    display: none;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 `;
 
-// Create a draggable header
-const header = document.createElement("div");
-header.id = "floating-header";
-header.style.cssText = `
-    width: 100%;
-    height: 25px;
-    background: #007bff;
-    color: white;
-    cursor: grab;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 10px;
-    font-size: 14px;
-    font-weight: bold;
-    user-select: none;
-`;
-
-// Add title to the header
-const title = document.createElement("span");
-title.innerText = "Bias Detector";
-header.appendChild(title);
-
-// Create close button
-const closeButton = document.createElement("button");
-closeButton.innerText = "×";
-closeButton.style.cssText = `
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-`;
-
-closeButton.addEventListener("click", () => {
-    container.remove(); // Remove the entire floating container
-});
-
-// Append close button and title to the header
-header.appendChild(closeButton);
-
-// Create the iframe
+// Create the iframe (only iframe, no extra HTML structure)
 const iframe = document.createElement("iframe");
 iframe.src = chrome.runtime.getURL("floating.html");
 iframe.style.cssText = `
     width: 100%;
-    height: calc(100% - 25px);
+    height: 100%;
     border: none;
     background: white;
 `;
 
-// Append header and iframe to the container
-container.appendChild(header);
+// Append the iframe to the container
 container.appendChild(iframe);
+
+// Append the icon and container (with iframe) to the document body
+document.body.appendChild(icon);
 document.body.appendChild(container);
 
-// Dragging logic
-let isDragging = false, startX, startY, startLeft, startTop;
-
-header.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = container.offsetLeft;
-    startTop = container.offsetTop;
-    header.style.cursor = "grabbing";
+// Toggle window visibility on icon click
+icon.addEventListener("click", () => {
+    if (container.style.display === "none" || container.style.opacity === "0") {
+        // Show with animation
+        container.style.display = "block";
+        setTimeout(() => {
+            container.style.opacity = "1";
+            container.style.transform = "translate(-50%, -50%) scale(1)";
+        }, 10);
+    } else {
+        // Hide with animation
+        container.style.opacity = "0";
+        container.style.transform = "translate(-50%, -50%) scale(0.8)";
+        setTimeout(() => {
+            container.style.display = "none";
+        }, 300);
+    }
 });
 
-document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    let newLeft = startLeft + (e.clientX - startX);
-    let newTop = startTop + (e.clientY - startY);
-    container.style.left = `${newLeft}px`;
-    container.style.top = `${newTop}px`;
+// Create close button and add the functionality
+const closeButton = document.createElement("button");
+closeButton.innerText = "×";
+closeButton.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+`;
+
+// Close the floating window when clicking the close button
+closeButton.addEventListener("click", () => {
+    container.style.opacity = "0";
+    container.style.transform = "translate(-50%, -50%) scale(0.8)";
+    setTimeout(() => {
+        container.style.display = "none";
+    }, 300);
 });
 
-document.addEventListener("mouseup", () => {
-    isDragging = false;
-    header.style.cursor = "grab";
-});
+// Append close button to container (only shown when window is opened)
+container.appendChild(closeButton);
