@@ -24,8 +24,8 @@ container.style.cssText = `
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 350px;
-    height: 200px;
+    width: 500px; /* Increased width */
+    height: 300px; /* Increased height */
     background: white;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     border-radius: 10px;
@@ -34,22 +34,26 @@ container.style.cssText = `
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    resize: both;
+    overflow: auto;
 `;
 
-// Create the iframe
-const iframe = document.createElement("iframe");
-iframe.src = chrome.runtime.getURL("floating.html");
-iframe.style.cssText = `
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: white;
+// Create the content area to display the analysis result
+const analysisResult = document.createElement("div");
+analysisResult.id = "analysis-result";
+analysisResult.style.cssText = `
+    padding: 15px;
+    font-size: 14px;
+    color: #555;
+    overflow-y: auto;
+    max-height: 100%;
+    white-space: pre-wrap;
 `;
 
-// Append the iframe to the container
-container.appendChild(iframe);
+// Append the analysis result div to the container
+container.appendChild(analysisResult);
 
-// Append the icon and container (with iframe) to the document body
+// Append the icon and container (with analysis result) to the document body
 document.body.appendChild(icon);
 document.body.appendChild(container);
 
@@ -63,14 +67,14 @@ icon.addEventListener("click", async () => {
             container.style.transform = "translate(-50%, -50%) scale(1)";
         }, 10);
 
-        // Get URL or text to analyze
+        // Get the current URL of the page
         const url = window.location.href;
-        const selectedText = window.getSelection().toString().trim();
 
-        let textToAnalyze = selectedText || url; // Prioritize selected text if any
+        // Extract the content of the page
+        const pageContent = document.body.innerText; // You can modify this to target specific elements
 
-        // Send the analysis request to the FastAPI backend
-        if (textToAnalyze) {
+        // Send the extracted content to the FastAPI backend for analysis
+        if (pageContent) {
             try {
                 const response = await fetch("http://localhost:8000/analyze", {
                     method: "POST",
@@ -78,19 +82,23 @@ icon.addEventListener("click", async () => {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        text: textToAnalyze, // You can also send the URL here if necessary
+                        text: pageContent, // Send the extracted page content
                     }),
                 });
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch analysis");
                 }
 
                 const result = await response.json();
 
-                // Pass the result to the iframe (or display it in the window)
-                const iframeWindow = iframe.contentWindow;
-                iframeWindow.postMessage(result, "*");
-
+                // Display the analysis result in the floating window
+                analysisResult.innerHTML = `
+                    <h3>Bias Analysis</h3>
+                    <p><strong>Overall Bias:</strong> ${result.overallBias}</p>
+                    <p><strong>Analysis:</strong></p>
+                    <p>${result.analysis}</p>
+                `;
             } catch (error) {
                 console.error("Error fetching analysis:", error);
             }
@@ -104,28 +112,3 @@ icon.addEventListener("click", async () => {
         }, 300);
     }
 });
-
-// Create close button and add the functionality
-const closeButton = document.createElement("button");
-closeButton.innerText = "×";
-closeButton.style.cssText = `
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-`;
-
-// Close the floating window when clicking the close button
-closeButton.addEventListener("click", () => {
-    container.style.opacity = "0";
-    container.style.transform = "translate(-50%, -50%) scale(0.8)";
-    setTimeout(() => {
-        container.style.display = "none";
-    }, 300);
-});
-
-// Append close button to container (only shown when window is opened)
-container.appendChild(closeButton);
