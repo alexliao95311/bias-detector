@@ -38,22 +38,20 @@ container.style.cssText = `
     overflow: auto;
 `;
 
-// Create the content area to display the analysis result
-const analysisResult = document.createElement("div");
-analysisResult.id = "analysis-result";
-analysisResult.style.cssText = `
-    padding: 15px;
-    font-size: 14px;
-    color: #555;
-    overflow-y: auto;
-    max-height: 100%;
-    white-space: pre-wrap;
+// Create the iframe (used to display the existing website)
+const iframe = document.createElement("iframe");
+iframe.src = "http://20.3.246.40:8000";  // Replace with your existing website URL
+iframe.style.cssText = `
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
 `;
 
-// Append the analysis result div to the container
-container.appendChild(analysisResult);
+// Append the iframe to the container
+container.appendChild(iframe);
 
-// Append the icon and container (with analysis result) to the document body
+// Append the icon and container (with iframe) to the document body
 document.body.appendChild(icon);
 document.body.appendChild(container);
 
@@ -67,14 +65,14 @@ icon.addEventListener("click", async () => {
             container.style.transform = "translate(-50%, -50%) scale(1)";
         }, 10);
 
-        // Get the current URL of the page
+        // Get URL or text to analyze
         const url = window.location.href;
+        const selectedText = window.getSelection().toString().trim();
 
-        // Extract the content of the page
-        const pageContent = document.body.innerText; // You can modify this to target specific elements
+        let textToAnalyze = selectedText || url; // Prioritize selected text if any
 
-        // Send the extracted content to the FastAPI backend for analysis
-        if (pageContent) {
+        // Send the analysis request to the FastAPI backend
+        if (textToAnalyze) {
             try {
                 const response = await fetch("http://localhost:8000/analyze", {
                     method: "POST",
@@ -82,23 +80,21 @@ icon.addEventListener("click", async () => {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        text: pageContent, // Send the extracted page content
+                        text: textToAnalyze, // You can also send the URL here if necessary
                     }),
                 });
-
                 if (!response.ok) {
                     throw new Error("Failed to fetch analysis");
                 }
 
                 const result = await response.json();
 
-                // Display the analysis result in the floating window
-                analysisResult.innerHTML = `
-                    <h3>Bias Analysis</h3>
-                    <p><strong>Overall Bias:</strong> ${result.overallBias}</p>
-                    <p><strong>Analysis:</strong></p>
-                    <p>${result.analysis}</p>
-                `;
+                // Pass the result to the iframe (or display it in the window)
+                const iframeWindow = iframe.contentWindow;
+
+                // If needed, you can directly post the result data to the iframe here
+                iframeWindow.postMessage(result, "*");
+
             } catch (error) {
                 console.error("Error fetching analysis:", error);
             }
