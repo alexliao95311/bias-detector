@@ -1,5 +1,3 @@
----
-
 # Fake News Detector
 
 ## Overview
@@ -41,4 +39,4 @@
 - **Chrome Extension Launch:** We plan to roll out the Chrome extension soon, offering users a convenient way to analyze content while browsing. The extension will be lightweight, easy to install, and will work directly in your browser without interrupting your workflow.
 - **More AI-Driven Features:** As we continue to develop the platform, we aim to enhance the AI algorithms for more accurate and nuanced content analysis, ensuring that users receive even more detailed feedback on the reliability of the content they encounter.
 
---- 
+---
