@@ -36,6 +36,8 @@ https://youtu.be/qpjxVz1lCus
    - We’re excited to introduce a **Chrome extension** in the near future. With the extension, you will be able to analyze any news article or webpage in real-time as you browse the internet.
    - The extension will automatically detect biased content and provide feedback instantly, helping you stay informed and critical of the information you consume online.
 
+   - CHROME EXTENSION BASICS IMPLEMENTED CHECK WITH REPO
+
 ---
 
 ## Future Plans
